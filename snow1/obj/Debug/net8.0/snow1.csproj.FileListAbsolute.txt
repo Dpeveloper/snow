@@ -1,0 +1,14 @@
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.AssemblyInfoInputs.cache
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.AssemblyInfo.cs
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.csproj.CoreCompileInputs.cache
+C:\Users\dqp23\source\repos\snow1\snow1\bin\Debug\net8.0\snow1.exe
+C:\Users\dqp23\source\repos\snow1\snow1\bin\Debug\net8.0\snow1.deps.json
+C:\Users\dqp23\source\repos\snow1\snow1\bin\Debug\net8.0\snow1.runtimeconfig.json
+C:\Users\dqp23\source\repos\snow1\snow1\bin\Debug\net8.0\snow1.dll
+C:\Users\dqp23\source\repos\snow1\snow1\bin\Debug\net8.0\snow1.pdb
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.dll
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\refint\snow1.dll
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.pdb
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\snow1.genruntimeconfig.cache
+C:\Users\dqp23\source\repos\snow1\snow1\obj\Debug\net8.0\ref\snow1.dll

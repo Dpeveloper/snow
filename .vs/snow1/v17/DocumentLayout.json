@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\dqp23\\source\\repos\\snow1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|c:\\users\\dqp23\\source\\repos\\snow1\\snow1\\closedcyclesimulation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|solutionrelative:snow1\\closedcyclesimulation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|c:\\users\\dqp23\\source\\repos\\snow1\\snow1\\evaporator\\basicevaporator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|solutionrelative:snow1\\evaporator\\basicevaporator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|c:\\users\\dqp23\\source\\repos\\snow1\\snow1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|solutionrelative:snow1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|c:\\users\\dqp23\\source\\repos\\snow1\\snow1\\enviroment\\thermalenvironment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{063A50D4-9865-4CC3-88B1-1CC8F1FF6D4A}|snow1\\snow1.csproj|solutionrelative:snow1\\enviroment\\thermalenvironment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Program.cs",
+              "RelativeDocumentMoniker": "snow1\\Program.cs",
+              "ToolTip": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Program.cs",
+              "RelativeToolTip": "snow1\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-10T22:21:16.552Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "BasicEvaporator.cs",
+              "DocumentMoniker": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Evaporator\\BasicEvaporator.cs",
+              "RelativeDocumentMoniker": "snow1\\Evaporator\\BasicEvaporator.cs",
+              "ToolTip": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Evaporator\\BasicEvaporator.cs",
+              "RelativeToolTip": "snow1\\Evaporator\\BasicEvaporator.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAWwBgAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-10T21:49:19.289Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ThermalEnvironment.cs",
+              "DocumentMoniker": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Enviroment\\ThermalEnvironment.cs",
+              "RelativeDocumentMoniker": "snow1\\Enviroment\\ThermalEnvironment.cs",
+              "ToolTip": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\Enviroment\\ThermalEnvironment.cs",
+              "RelativeToolTip": "snow1\\Enviroment\\ThermalEnvironment.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAD4vxQAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-10T21:47:29.644Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ClosedCycleSimulation.cs",
+              "DocumentMoniker": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\ClosedCycleSimulation.cs",
+              "RelativeDocumentMoniker": "snow1\\ClosedCycleSimulation.cs",
+              "ToolTip": "C:\\Users\\dqp23\\source\\repos\\snow1\\snow1\\ClosedCycleSimulation.cs",
+              "RelativeToolTip": "snow1\\ClosedCycleSimulation.cs",
+              "ViewState": "AgIAAEEAAAAAAAAAAADwv0oAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-07T20:49:28.619Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
