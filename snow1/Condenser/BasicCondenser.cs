@@ -1,55 +1,47 @@
-﻿using snow1.Refrigerant;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using snow1.enums;
+using snow1.Interface;
+using snow1.Refrigerant;
 
 namespace snow1.Condenser
 {
-    public class BasicCondenser : ICondenser
+    public class BasicCondenser : IComponent
     {
-        private double ambientAirTemp;     // K
-        private double heatTransferArea;   // m²
-        private double uValue;             // kW/m²·K
-        private double operatingPressure;  // Pa
+        private double ambientAirTemp;     // Temperatura del aire ambiente (K)
+        private double heatTransferArea;   // Área de transferencia (m²)
+        private double uValue;             // Coef. global de transferencia térmica (kW/m²·K)
+        private double operatingPressure;  // Presión de condensación (Pa)
+        private RefrigerantProperties props;
 
-        public BasicCondenser(double ambientAirTemp, double heatTransferArea, double uValue, double operatingPressure)
+        public string Name => Type.ToString();
+        public ComponentType Type => ComponentType.Condenser;
+
+        public BasicCondenser(double ambientAirTemp, double heatTransferArea, double uValue, double operatingPressure, RefrigerantProperties props)
         {
             this.ambientAirTemp = ambientAirTemp;
             this.heatTransferArea = heatTransferArea;
             this.uValue = uValue;
             this.operatingPressure = operatingPressure;
+            this.props = props;
         }
 
-        public RefrigerantState Condense(RefrigerantState input)
+        public RefrigerantState Process(RefrigerantState input)
         {
-            double deltaT = input.Temperature - ambientAirTemp;
-            double q = uValue * heatTransferArea * deltaT; // kW
-            double hOut = input.Enthalpy - q / input.MassFlowRate; // kJ/kg
+            double deltaT = input.Temperature - ambientAirTemp;               // Diferencia de temperatura (K)
+            double q = uValue * heatTransferArea * deltaT;                    // Transferencia de calor (kW)
+            double hOut = input.Enthalpy - q / input.MassFlowRate;           // Enthalpía de salida
 
             RefrigerantState output = input.Clone();
             output.Enthalpy = hOut;
-            output.Temperature = EstimateTemperatureFromEnthalpy(hOut);
-            output.Entropy = EstimateEntropy(output);
+            output.Temperature = props.GetTemperatureFromPressure(operatingPressure);
+            output.Entropy = props.GetEntropyFromPressure(operatingPressure);
             output.Pressure = operatingPressure;
 
             return output;
         }
 
-        public double GetPressure()
+        public bool CanConnectTo(IComponent next)
         {
-            return operatingPressure;
-        }
-
-        private double EstimateTemperatureFromEnthalpy(double h)
-        {
-            return 273.15 + (h - 200) * 0.5;
-        }
-
-        private double EstimateEntropy(RefrigerantState state)
-        {
-            return state.Enthalpy / state.Temperature;
+            return next.Type == ComponentType.ExpansionValve;
         }
     }
 

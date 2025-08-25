@@ -1,14 +1,7 @@
 ﻿using snow1.Compressors;
 using snow1.Condenser;
 using snow1.Enviroment;
-using snow1.Evaporator;
-using snow1.ExpansionValve;
 using snow1.Refrigerant;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace snow1
 {
@@ -18,6 +11,8 @@ namespace snow1
 
         public async Task RunAsync()
         {
+            RefrigerantProperties props = new RefrigerantProperties();
+            // Estado inicial del refrigerante (R134a)
             var initialState = new RefrigerantState
             {
                 Pressure = 300000,
@@ -29,23 +24,25 @@ namespace snow1
 
             var currentState = initialState;
 
-            var compressionModel = new IsentropicCompressionModel(0.8);
+            var compressionModel = new IsentropicCompressionModel(0.8, props);
             var compressor = new Compressor(3.0, compressionModel);
 
             var condenser = new BasicCondenser(
                 ambientAirTemp: 303.15,
                 heatTransferArea: 3.0,
                 uValue: 0.6,
-                operatingPressure: 900000
+                operatingPressure: 900000,
+                props
             );
 
-            var valve = new ThermostaticExpansionValve();
+            var valve = new ThermostaticExpansionValve(props);
 
             var evaporator = new BasicEvaporator(
                 ambientAirTemp: 295,
                 heatTransferArea: 3.0,
                 uValue: 0.6,
-                operatingPressure: 300000
+                operatingPressure: 300000,
+                props
             );
 
             var room = new ThermalEnvironment(
@@ -56,71 +53,58 @@ namespace snow1
             double tiempoActual = 0;
             double tiempoPaso = 1; // segundos reales
 
-            Console.WriteLine("== Simulación de Refrigeración en Tiempo Real ==\n");
+            Console.Clear();
+            Console.WriteLine("== ❄️ SIMULADOR DE REFRIGERACIÓN: INICIO ==\n");
 
             while (simulacionActiva && room.Temperature > 289.15) // 16°C
             {
+                Console.WriteLine($"\n=== ⏱️ Tiempo: {tiempoActual:F0}s ===");
+
                 evaporator.SetAmbientTemperature(room.Temperature);
 
-                // 1. Evaporador → Compresor
-                currentState = evaporator.AbsorbHeat(initialState);
-                double qAbs = (currentState.Enthalpy - initialState.Enthalpy) * currentState.MassFlowRate;
+                // 🔵 1. EVAPORADOR
+                var estadoEvap = evaporator.Process(currentState);
+                double qAbs = (estadoEvap.Enthalpy - currentState.Enthalpy) * estadoEvap.MassFlowRate;
                 room.RemoveHeat(qAbs * tiempoPaso);
-                PrintState(tiempoActual, room, currentState);
-                PrintRefrigerantState("Después del EVAPORADOR", currentState);
+                PrintComponente("EVAPORADOR", currentState, estadoEvap, qAbs, "Q Absorbido");
+                currentState = estadoEvap;
 
-                // 2. Compresor → Condensador
-                currentState = compressor.Process(currentState);
-                PrintRefrigerantState("Después del COMPRESOR", currentState);
+                // 🔴 2. COMPRESOR
+                var estadoComp = compressor.Process(currentState);
+                double wComp = compressor.PowerConsumed;
+                PrintComponente("COMPRESOR", currentState, estadoComp, wComp, "Trabajo eléctrico");
+                currentState = estadoComp;
 
-                // 3. Condensador → Válvula
-                currentState = condenser.Condense(currentState);
-                PrintRefrigerantState("Después del CONDENSADOR", currentState);
+                // 🟡 3. CONDENSADOR
+                var estadoCond = condenser.Process(currentState);
+                double qRech = (currentState.Enthalpy - estadoCond.Enthalpy) * currentState.MassFlowRate;
+                PrintComponente("CONDENSADOR", currentState, estadoCond, qRech, "Q Rechazado");
+                currentState = estadoCond;
 
-                // 4. Válvula → Evaporador
-                currentState = valve.Expand(currentState, evaporator.GetPressure());
-                PrintRefrigerantState("Después de la VÁLVULA DE EXPANSIÓN", currentState);
+                // ⚪ 4. VÁLVULA DE EXPANSIÓN
+                valve.SetTargetPressure(evaporator.GetPressure());
+                var estadoValv = valve.Process(currentState);
+                PrintComponente("VÁLVULA DE EXPANSIÓN", currentState, estadoValv, 0, "ΔP Forzada");
+                currentState = estadoValv;
 
-                // Esperar 1 segundo en tiempo real
+                // 🌡️ Ambiente
+                Console.WriteLine($"\n🌍 Temperatura del ambiente: {room.Temperature - 273.15:F2} °C");
+                Console.WriteLine("============================================\n");
+
                 await Task.Delay(TimeSpan.FromSeconds(tiempoPaso));
                 tiempoActual += tiempoPaso;
             }
 
-
-            Console.WriteLine("\nSimulación finalizada. Temperatura objetivo alcanzada o detenida.");
+            Console.WriteLine("✅ Simulación finalizada: Temperatura objetivo alcanzada o ciclo detenido.");
         }
-
-        private void PrintState(double tiempo, ThermalEnvironment room, RefrigerantState estadoActual, RefrigerantState estadoAnterior = null, string componente = "Ciclo")
+        private void PrintComponente(string nombre, RefrigerantState entrada, RefrigerantState salida, double energia, string tipoEnergia)
         {
-            Console.WriteLine($"[t={tiempo:F0}s] 🌡️ Ambiente: {room.Temperature - 273.15:F2} °C");
-
-            if (estadoAnterior != null)
-            {
-                Console.WriteLine($"🔄 Cambios en el {componente}:");
-                Console.WriteLine($"   ▸ ΔPresión:    {estadoActual.Pressure - estadoAnterior.Pressure:N0} Pa");
-                Console.WriteLine($"   ▸ ΔTemperatura:{estadoActual.Temperature - estadoAnterior.Temperature:F2} K");
-                Console.WriteLine($"   ▸ ΔEntalpía:   {estadoActual.Enthalpy - estadoAnterior.Enthalpy:F2} kJ/kg");
-                Console.WriteLine($"   ▸ ΔEntropía:   {estadoActual.Entropy - estadoAnterior.Entropy:F4} kJ/kg·K");
-            }
-
-            Console.WriteLine($"📦 Estado actual:");
-            Console.WriteLine($"   ▸ Presión:     {estadoActual.Pressure:N0} Pa");
-            Console.WriteLine($"   ▸ Temperatura: {estadoActual.Temperature:F2} K");
-            Console.WriteLine($"   ▸ Entalpía:    {estadoActual.Enthalpy:F2} kJ/kg");
-            Console.WriteLine($"   ▸ Entropía:    {estadoActual.Entropy:F4} kJ/kg·K");
-            Console.WriteLine();
-            Console.WriteLine($"=========FIN {tiempo} SEGUNDO DE LA SIMULACIÓN=========");
-            Console.WriteLine();
-        }
-
-        private void PrintRefrigerantState(string etapa, RefrigerantState state)
-        {
-            Console.WriteLine($"🔄 {etapa}");
-            Console.WriteLine($"   - Presión:     {state.Pressure:N0} Pa");
-            Console.WriteLine($"   - Temperatura: {state.Temperature - 273.15:F2} °C");
-            Console.WriteLine($"   - Entalpía:    {state.Enthalpy:F2} kJ/kg");
-            Console.WriteLine($"   - Entropía:    {state.Entropy:F4} kJ/kg·K");
-            Console.WriteLine($"   - Flujo másico:{state.MassFlowRate:F3} kg/s\n");
+            Console.WriteLine($"\n🔧 [{nombre}]");
+            Console.WriteLine($"   ▸ Presión:     {salida.Pressure:N0} Pa  (Δ {salida.Pressure - entrada.Pressure:N0})");
+            Console.WriteLine($"   ▸ Temperatura: {salida.Temperature - 273.15:F2} °C (Δ {(salida.Temperature - entrada.Temperature):F2})");
+            Console.WriteLine($"   ▸ Entalpía:    {salida.Enthalpy:F2} kJ/kg (Δ {(salida.Enthalpy - entrada.Enthalpy):F2})");
+            Console.WriteLine($"   ▸ Entropía:    {salida.Entropy:F4} kJ/kg·K (Δ {(salida.Entropy - entrada.Entropy):F4})");
+            Console.WriteLine($"   ▸ {tipoEnergia}: {energia:F2} kW");
         }
 
 

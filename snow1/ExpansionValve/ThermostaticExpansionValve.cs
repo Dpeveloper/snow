@@ -1,37 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using snow1.enums;
+using snow1.Interface;
 using snow1.Refrigerant;
 
-namespace snow1.ExpansionValve
+public class ThermostaticExpansionValve : IComponent
 {
-    public class ThermostaticExpansionValve : ExpansionValve
+    public string Name => Type.ToString();
+    public ComponentType Type => ComponentType.ExpansionValve;
+
+    private double targetPressure;
+    private RefrigerantProperties props;
+
+    public ThermostaticExpansionValve(RefrigerantProperties props)
     {
-        public override RefrigerantState Expand(RefrigerantState input, double targetPressure)
-        {
-            // Modelo ideal: entalpía constante, presión desciende
-            RefrigerantState output = input;
-            output.Pressure = targetPressure;
-            output.Enthalpy = input.Enthalpy; // proceso isoentálpico ideal
-            output.Temperature = EstimateSaturationTempAtPressure(targetPressure);
-            output.Entropy = EstimateEntropy(output);
-
-            return output;
-        }
-
-        private double EstimateSaturationTempAtPressure(double pressure)
-        {
-            // Estimación educativa: inversa logarítmica aproximada
-            return 273.15 + 40 - Math.Log(pressure / 100000) * 15;
-        }
-
-        private double EstimateEntropy(RefrigerantState state)
-        {
-            return state.Enthalpy / state.Temperature;
-        }
+        this.props = props;
     }
 
+    public void SetTargetPressure(double pressure)
+    {
+        targetPressure = pressure;
+    }
+
+    public RefrigerantState Process(RefrigerantState input)
+    {
+        if (targetPressure <= 0)
+            throw new InvalidOperationException("La presión objetivo no ha sido configurada en la válvula termostática.");
+
+        RefrigerantState output = input.Clone();
+        output.Pressure = targetPressure;
+        output.Enthalpy = input.Enthalpy;
+        output.Temperature = props.GetTemperatureFromPressure(targetPressure);
+        output.Entropy = props.GetEntropyFromPressure(targetPressure);
+
+        return output;
+    }
+
+    public bool CanConnectTo(IComponent next)
+    {
+        return next.Type == ComponentType.Evaporator;
+    }
 }

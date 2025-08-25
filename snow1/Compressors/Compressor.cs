@@ -1,33 +1,34 @@
-﻿using snow1.Refrigerant;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using snow1.Compressors;
+using snow1.enums;
+using snow1.Interface;
+using snow1.Refrigerant;
 
-namespace snow1.Compressors
+public class Compressor : IComponent
 {
-    public class Compressor
+    private double compressionRatio;
+    private ICompressionModel model;
+
+    public double PowerConsumed { get; private set; }
+
+    public string Name => "Compressor";
+    public ComponentType Type => ComponentType.Compressor;
+
+    public Compressor(double compressionRatio, ICompressionModel compressionModel)
     {
-        private double compressionRatio; // Ej: 3 → triplica la presión
-        private ICompressionModel model;
+        this.compressionRatio = compressionRatio;
+        this.model = compressionModel;
+    }
 
-        public double PowerConsumed { get; private set; }
+    public RefrigerantState Process(RefrigerantState input)
+    {
+        double targetPressure = input.Pressure * compressionRatio;
+        RefrigerantState output = model.Compute(input, targetPressure);
+        PowerConsumed = input.MassFlowRate * (output.Enthalpy - input.Enthalpy);
+        return output;
+    }
 
-        public Compressor(double compressionRatio, ICompressionModel compressionModel)
-        {
-            this.compressionRatio = compressionRatio;
-            this.model = compressionModel;
-        }
-
-        public RefrigerantState Process(RefrigerantState input)
-        {
-            double targetPressure = input.Pressure * compressionRatio;
-
-            RefrigerantState output = model.Compute(input, targetPressure);
-            PowerConsumed = input.MassFlowRate * (output.Enthalpy - input.Enthalpy);
-            return output;
-        }
+    public bool CanConnectTo(IComponent next)
+    {
+        return next.Type == ComponentType.Condenser;
     }
 }

@@ -1,38 +1,41 @@
-﻿using snow1.Refrigerant;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using snow1.enums;
+using snow1.Interface;
+using snow1.Refrigerant;
 
-namespace snow1.ExpansionValve
+public class CapillaryTube : IComponent
 {
-    public class CapillaryTube : ExpansionValve
+    public string Name => Type.ToString();
+    public ComponentType Type => ComponentType.ExpansionValve;
+
+    private double targetPressure;
+    private RefrigerantProperties props;
+
+    public CapillaryTube(RefrigerantProperties props)
     {
-        public override RefrigerantState Expand(RefrigerantState input, double targetPressure)
-        {
-            // Aquí se modela la caída de presión con un flujo permanente
-            // Se puede añadir cálculo con ecuación de Darcy-Weisbach o Hazen-Williams
+        this.props = props;
+    }
 
-            RefrigerantState output = input.Clone();
-            output.Pressure = targetPressure;
-            output.Enthalpy = input.Enthalpy;
-            output.Temperature = EstimateSaturationTempAtPressure(targetPressure);
-            output.Entropy = EstimateEntropy(output);
+    public void SetTargetPressure(double pressure)
+    {
+        targetPressure = pressure;
+    }
 
-            return output;
-        }
+    public RefrigerantState Process(RefrigerantState input)
+    {
+        if (targetPressure <= 0)
+            throw new InvalidOperationException("La presión objetivo no ha sido configurada en el tubo capilar.");
 
-        private double EstimateSaturationTempAtPressure(double pressure)
-        {
-            // Estimación educativa: inversa logarítmica aproximada
-            return 273.15 + 40 - Math.Log(pressure / 100000) * 15;
-        }
+        RefrigerantState output = input.Clone();
+        output.Pressure = targetPressure;
+        output.Enthalpy = input.Enthalpy;
+        output.Temperature = props.GetTemperatureFromPressure(targetPressure);
+        output.Entropy = props.GetEntropyFromPressure(targetPressure);
 
-        private double EstimateEntropy(RefrigerantState state)
-        {
-            return state.Enthalpy / state.Temperature;
-        }
+        return output;
+    }
 
+    public bool CanConnectTo(IComponent next)
+    {
+        return next.Type == ComponentType.Evaporator;
     }
 }
