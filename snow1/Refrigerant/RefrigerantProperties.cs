@@ -41,6 +41,15 @@ namespace snow1.Refrigerant
     };
         }
 
+        public double GetPressureFromTemperature(double temperature)
+        {
+            return Interpolate1D<(double pressure, double temperature, double enthalpy, double entropy)>(
+                temperature,
+                t => t.temperature,
+                t => t.pressure
+            );
+        }
+
         public double GetTemperatureFromPressure(double pressure)
         {
             return Interpolate1D<(double pressure, double temperature, double enthalpy, double entropy)>(
@@ -76,40 +85,67 @@ namespace snow1.Refrigerant
                 .Take(2)
                 .ToList();
 
-            if (groupP.Count < 2) throw new Exception("No hay suficientes datos de presión para interpolar.");
+            if (!groupP.Any())
+                throw new Exception("No hay datos de entalpía disponibles en la tabla 2D.");
 
+            // Caso con un solo grupo (no hay suficiente rango de presión para interpolar en P)
+            if (groupP.Count < 2)
+            {
+                var singleGroup = groupP.First().ToList();
+                return Interpolate1D(targetEntropy,
+                    x => x.entropy,
+                    x => x.enthalpy,
+                    singleGroup);
+            }
+
+            // Caso normal con dos grupos de presión
             var lowerP = groupP[0].Key;
             var upperP = groupP[1].Key;
 
-            var hLow = Interpolate1D(targetEntropy,
-                x => x.entropy,
-                x => x.enthalpy,
-                groupP[0].Where(x => Math.Abs(x.entropy - targetEntropy) <= 0.4).ToList());
+            // Subconjuntos de entropía cercanos al targetEntropy
+            var subsetLow = groupP[0]
+                .Where(x => Math.Abs(x.entropy - targetEntropy) <= 0.4)
+                .ToList();
+            if (!subsetLow.Any()) subsetLow = groupP[0].ToList(); // fallback si queda vacío
 
-            var hHigh = Interpolate1D(targetEntropy,
-                x => x.entropy,
-                x => x.enthalpy,
-                groupP[1].Where(x => Math.Abs(x.entropy - targetEntropy) <= 0.4).ToList());
+            var subsetHigh = groupP[1]
+                .Where(x => Math.Abs(x.entropy - targetEntropy) <= 0.4)
+                .ToList();
+            if (!subsetHigh.Any()) subsetHigh = groupP[1].ToList(); // fallback si queda vacío
 
+            // Interpolación en entropía dentro de cada presión
+            var hLow = Interpolate1D(targetEntropy, x => x.entropy, x => x.enthalpy, subsetLow);
+            var hHigh = Interpolate1D(targetEntropy, x => x.entropy, x => x.enthalpy, subsetHigh);
+
+            // Interpolación final entre presiones
             return Interpolate(targetPressure, lowerP, upperP, hLow, hHigh);
         }
 
+
         private double Interpolate1D<T>(double x,
-            Func<T, double> xSelector,
-            Func<T, double> ySelector,
-            List<T>? subset = null)
+        Func<T, double> xSelector,
+        Func<T, double> ySelector,
+        List<T>? subset = null)
         {
             var data = subset ?? table1D.Cast<T>().ToList();
+
+            if (!data.Any()) throw new Exception("No hay datos disponibles para interpolar.");
+
             var lower = data.LastOrDefault(d => xSelector(d) <= x);
             var upper = data.FirstOrDefault(d => xSelector(d) >= x);
 
-            if (lower == null || upper == null || lower.Equals(upper)) return ySelector(lower);
+            // Si solo hay un punto cercano, devuelve ese
+            if (lower == null && upper != null) return ySelector(upper);
+            if (upper == null && lower != null) return ySelector(lower);
+            if (lower != null && upper != null && lower.Equals(upper)) return ySelector(lower);
 
+            // Si hay dos puntos distintos, interpola
             double x0 = xSelector(lower), x1 = xSelector(upper);
             double y0 = ySelector(lower), y1 = ySelector(upper);
 
             return Interpolate(x, x0, x1, y0, y1);
         }
+
 
         private double Interpolate(double x, double x0, double x1, double y0, double y1)
         {
