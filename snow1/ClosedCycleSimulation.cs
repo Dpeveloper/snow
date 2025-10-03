@@ -11,43 +11,50 @@ namespace snow1
 
         public async Task RunAsync()
         {
-            RefrigerantProperties props = new RefrigerantProperties();
-            // Estado inicial del refrigerante (R134a)
-            var initialState = new RefrigerantState
-            {
-                Pressure = 300000,
-                Temperature = 278,
-                Enthalpy = 240,
-                Entropy = 1.1,
-                MassFlowRate = 0.05
-            };
+            // 1️⃣ Configurar refrigerante
+            var refrigerantConfig = new RefrigerantConfig(
+                refrigerantName: "R134a",
+                initialTemperature: 278,   // 5°C en Kelvin
+                evaporationTemperature: 273,  // 0°C en Kelvin
+                condensationTemperature: 313,  // 40°C en Kelvin
+                ambientTemperature: 303    // 30°C en Kelvin
+            );
 
-            var currentState = initialState;
+            // 2️⃣ Crear estado inicial desde configuración
+            RefrigerantState currentState = refrigerantConfig.CreateInitialState();
 
-            var compressionModel = new IsentropicCompressionModel(0.8, props);
-            var compressor = new Compressor(3.0, compressionModel);
+            // 3️⃣ Crear modelo de compresión y compresor
+            var compressionModel = new IsentropicCompressionModel(0.8, new RefrigerantProperties());
+            var compressor = new Compressor(
+                compressionRatio: refrigerantConfig.Pcond,
+                compressionModel: compressionModel
+            );
 
+            // 4️⃣ Condensador usando la Pcond del refrigerante
             var condenser = new BasicCondenser(
-                ambientAirTemp: 303.15,
+                ambientAirTemp: refrigerantConfig.AmbientTemperature,
                 heatTransferArea: 3.0,
                 uValue: 0.6,
-                operatingPressure: 900000,
-                props
+                operatingPressure: refrigerantConfig.Pcond,
+                props: new RefrigerantProperties()
             );
 
-            var valve = new ThermostaticExpansionValve(props);
+            // 5️⃣ Válvula de expansión usando la Pevap del refrigerante
+            var valve = new ThermostaticExpansionValve(new RefrigerantProperties());
 
+            // 6️⃣ Evaporador usando la Pevap del refrigerante
             var evaporator = new BasicEvaporator(
-                ambientAirTemp: 295,
+                ambientAirTemp: refrigerantConfig.AmbientTemperature,
                 heatTransferArea: 3.0,
                 uValue: 0.6,
-                operatingPressure: 300000,
-                props
+                operatingPressure: refrigerantConfig.Pevap,
+                props: new RefrigerantProperties()
             );
 
+            // 7️⃣ Ambiente (sala/frigorífico)
             var room = new ThermalEnvironment(
-                initialTemperature: 303.15,  // 30°C
-                heatCapacity: 10000          // kJ/K
+                initialTemperature: refrigerantConfig.AmbientTemperature,
+                heatCapacity: 10000 // kJ/K
             );
 
             double tiempoActual = 0;
@@ -97,6 +104,7 @@ namespace snow1
 
             Console.WriteLine("✅ Simulación finalizada: Temperatura objetivo alcanzada o ciclo detenido.");
         }
+
         private void PrintComponente(string nombre, RefrigerantState entrada, RefrigerantState salida, double energia, string tipoEnergia)
         {
             Console.WriteLine($"\n🔧 [{nombre}]");
@@ -106,7 +114,5 @@ namespace snow1
             Console.WriteLine($"   ▸ Entropía:    {salida.Entropy:F4} kJ/kg·K (Δ {(salida.Entropy - entrada.Entropy):F4})");
             Console.WriteLine($"   ▸ {tipoEnergia}: {energia:F2} kW");
         }
-
-
     }
 }
